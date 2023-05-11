@@ -115,6 +115,21 @@ BEGIN
 END$$
 
 #16. Emails Trigger
+CREATE TABLE `logs` (
+	log_id INT PRIMARY KEY AUTO_INCREMENT,
+    account_id INT NOT NULL,
+    old_sum DECIMAL(19, 4),
+    new_sum DECIMAL (19, 4)
+);
+
+CREATE TRIGGER tr_change_balance_account
+AFTER UPDATE ON accounts
+FOR EACH ROW #всеки ред който е променен
+BEGIN
+	INSERT INTO logs (account_id, old_sum, new_sum)
+    VALUE (OLD.id, OLD.balance, NEW.balance);
+END;
+
 CREATE TABLE `notification_emails`(
     `id` INT PRIMARY KEY AUTO_INCREMENT, 
     `recipient` INT NOT NULL,
@@ -122,7 +137,6 @@ CREATE TABLE `notification_emails`(
     `body` TEXT
 );
 
-DELIMITER $$
 CREATE TRIGGER tr_email_on_incert
 AFTER INSERT ON logs
 FOR EACH ROW #за всеки вмъкнат ред в logs
@@ -133,5 +147,5 @@ BEGIN
         CONCAT('Balance change for account: ', NEW.account_id),
         CONCAT('On ', NOW(), ' your balance was changed from ', NEW.old_sum, ' to ', NEW.new_sum, '.')
         );
-END$$
+END
 
